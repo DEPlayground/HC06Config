@@ -54,7 +54,7 @@
 
 
 // You should not need to touch anything below, unless you know what you're doing.
- 
+
 /*
  * The HC-06 doesn't use an end-of-line mark, so we check whether the reply starts
  * with "OK", have at least some indication things worked. We need to wait until
@@ -63,350 +63,304 @@
 
 SoftwareSerial hc06(RXPIN, TXPIN);
 
-void setup()
-{
-  Serial.begin(9600);
+void setup() {
+    Serial.begin(9600);
 
-  while (!Serial.available());
+    while (!Serial.available());
 
-  selectHC06BAUDRate();
+    selectHC06BAUDRate();
 }
 
 
-void selectHC06BAUDRate()
-{
-  Serial.println(F(""));
-  Serial.println(F("What BAUD rate is your HC-06 configured to?"));
-  Serial.println(F("[1] 1200bps"));
-  Serial.println(F("[2] 2400bps"));
-  Serial.println(F("[3] 4800bps"));
-  Serial.println(F("[4] 9600bps (this is the default value)"));
-  Serial.println(F("[5] 19200bps"));
-  Serial.println(F("[6] 38400bps"));
-  Serial.println(F("[7] 57600bps"));
-  Serial.println(F("[8] 115200bps"));
-  Serial.println(F(""));
-  Serial.println(F("Please enter your choice."));
-  
-  String userInput = String();
+void selectHC06BAUDRate() {
+    Serial.println(F(""));
+    Serial.println(F("What BAUD rate is your HC-06 configured to?"));
+    Serial.println(F("[1] 1200bps"));
+    Serial.println(F("[2] 2400bps"));
+    Serial.println(F("[3] 4800bps"));
+    Serial.println(F("[4] 9600bps (this is the default value)"));
+    Serial.println(F("[5] 19200bps"));
+    Serial.println(F("[6] 38400bps"));
+    Serial.println(F("[7] 57600bps"));
+    Serial.println(F("[8] 115200bps"));
+    Serial.println(F(""));
+    Serial.println(F("Please enter your choice."));
 
-  input:
-  do
-  {
-    userInput = Serial.readStringUntil('\r');
-  }
-  while (userInput.equals(""));
+    String userInput = String();
 
-  int choiceMade = userInput.toInt();
-  if (choiceMade < 1 || choiceMade > 8)
-  {
-    Serial.println(F("Invalid choice! Please choose a valid item."));
-    goto input;
-  }
+    input:
+    do {
+        userInput = Serial.readStringUntil('\r');
+    } while (userInput.equals(""));
 
-  long baudRate;
-  switch (choiceMade)
-  {
-    case 1:
-      baudRate = 1200;
-      break;
-    case 2:
-      baudRate = 2400;
-      break;
-    case 3:
-      baudRate = 4800;
-      break;
-    case 5:
-      baudRate = 19200;
-      break;
-    case 6:
-      baudRate = 38400;
-      break;
-    case 7:
-      baudRate = 57600;
-      break;
-    case 8:
-      baudRate = 115200;
-      break;
-    default:
-      baudRate = 9600;
-      break;
-  }
-
-  String baudString = String(baudRate);
-  Serial.println("Starting serial communication with " + baudString + " bps...");
-  hc06.begin(baudRate);
-}
-
-void loop()
-{
-  switch(mainMenuChoice())
-  {
-    case 1:
-      changeBTName();
-      break;
-    case 2:
-      changeBTPIN();
-      break;
-    case 3:
-      changeBAUDRate();
-      break;
-    case 4:
-      showHC06Version();
-      break;
-  }
-}
-
-int mainMenuChoice()
-{
-  Serial.println(F(""));
-  Serial.println(F("What do you want to do?"));
-  Serial.println(F("[1] Set the Bluetooth device name"));
-  Serial.println(F("[2] Set the Bluetooth PIN"));
-  Serial.println(F("[3] Set the BAUD rate"));
-  Serial.println(F("[4] Show HC-06 version information"));
-  Serial.println(F(""));
-  Serial.println(F("Please enter your choice."));
-
-  String userInput = String();
-
-  input:
-  do
-  {
-    userInput = Serial.readStringUntil('\r');
-  }
-  while (userInput.equals(""));
-
-  int choiceMade = userInput.toInt();
-  if (choiceMade < 1 || choiceMade > 4)
-  {
-    Serial.println(F("Invalid choice! Please chose a valid item."));
-    goto input;
-  }
-
-  return choiceMade;
-}
-
-
-void changeBTName()
-{
-  Serial.println(F(""));
-
-  input:
-  Serial.print(F("Please enter the new name (at most 20 characters): "));
-
-  String userInput = String();
-  do
-  {
-    userInput = Serial.readStringUntil('\r');
-  }
-  while (userInput.equals(""));
-
-  Serial.println(userInput);
-
-  if (userInput.length() < 1 || userInput.length() > 20)
-  {
-    Serial.print(F("Invalid length! "));    
-    goto input;
-  }
-
-  if (enterATCommandMode())
-  {
-    hc06.print("AT+NAME" + userInput);
-    String reply = hc06.readString();
-    if (reply.equals(""))
-    {
-      Serial.println(F("HC-06 didn't reply in time!"));
+    int choiceMade = userInput.toInt();
+    if (choiceMade < 1 || choiceMade > 8) {
+        Serial.println(F("Invalid choice! Please choose a valid item."));
+        goto input;
     }
-    else
-    {
-      if (reply.length() < 2 || !reply.substring(0,2).equalsIgnoreCase(F("OK")))
-        Serial.println("Unexpected answer ('" + reply + "') to AT+NAME command!");
-      else  
-        Serial.println(F("Name was set successfully."));
-    }
-  }
-}
 
-
-void changeBTPIN()
-{
-  Serial.println(F(""));
-
-  input:
-  Serial.print(F("Please enter a 4-digit PIN: "));
-
-  String userInput = String();
-  do
-  {
-    userInput = Serial.readStringUntil('\r');
-  }
-  while (userInput.equals(""));
-
-  Serial.println(userInput);
-
-  if (userInput.length() != 4)
-  {
-    Serial.print(F("Your input must contain 4 digits! "));    
-    goto input;
-  }
-
-  int inputAsInt = userInput.toInt();
-  if (inputAsInt == 0)
-  {
-    Serial.print(F("Your input must consist of numbers only! ")); 
-    goto input;
-  }
-
-  if (enterATCommandMode())
-  {
-    hc06.print("AT+PIN" + userInput);
-    String reply = hc06.readString();
-    if (reply.equals(""))
-    {
-      Serial.println(F("HC-06 didn't reply in time!"));
-    }
-    else
-    {
-      if (reply.length() < 2 || !reply.substring(0,2).equalsIgnoreCase(F("OK")))
-        Serial.println("Unexpected answer ('" + reply + "') to AT+PIN command!");
-      else  
-        Serial.println(F("PIN was set successfully."));
-    }
-  }
-}
-
-
-void changeBAUDRate()
-{
-  Serial.println(F(""));
-
-  Serial.println(F("What BAUD rate should be set?"));
-  Serial.println(F("[1] 1200bps"));
-  Serial.println(F("[2] 2400bps"));
-  Serial.println(F("[3] 4800bps"));
-  Serial.println(F("[4] 9600bps"));
-  Serial.println(F("[5] 19200bps"));
-  Serial.println(F("[6] 38400bps"));
-  Serial.println(F("[7] 57600bps"));
-  Serial.println(F("[8] 115200bps"));
-  Serial.println(F(""));
-  Serial.println(F("Please enter your choice."));
-  
-  String userInput = String();
-
-  input:
-  do
-  {
-    userInput = Serial.readStringUntil('\r');
-  }
-  while (userInput.equals(""));
-
-  int choiceMade = userInput.toInt();
-  if (choiceMade < 1 || choiceMade > 8)
-  {
-    Serial.println(F("Invalid choice! Please chose a valid item."));
-    goto input;
-  }
-
-  if (enterATCommandMode())
-  {
-    hc06.print("AT+BAUD" + userInput);
-    String reply = hc06.readString();
-    if (reply.equals(""))
-    {
-      Serial.println(F("HC-06 didn't reply in time!"));
-    }
-    else
-    {
-      if (reply.length() < 2 || !reply.substring(0,2).equalsIgnoreCase(F("OK")))
-        Serial.println("Unexpected answer ('" + reply + "') to AT+BAUD command!");
-      else  
-      {
-        Serial.println(F("BAUD rate was set successfully. Trying to re-connect with new BAUD rate."));
-
-        long baudRate;
-        switch (choiceMade)
-        {
-          case 1:
+    long baudRate;
+    switch (choiceMade) {
+        case 1:
             baudRate = 1200;
             break;
-          case 2:
+        case 2:
             baudRate = 2400;
             break;
-          case 3:
+        case 3:
             baudRate = 4800;
             break;
-          case 5:
+        case 5:
             baudRate = 19200;
             break;
-          case 6:
+        case 6:
             baudRate = 38400;
             break;
-          case 7:
+        case 7:
             baudRate = 57600;
             break;
-          case 8:
+        case 8:
             baudRate = 115200;
             break;
-          default:
+        default:
             baudRate = 9600;
             break;
+    }
+
+    String baudString = String(baudRate);
+    Serial.println("Starting serial communication with " + baudString + " bps...");
+    hc06.begin(baudRate);
+}
+
+void loop() {
+    switch (mainMenuChoice()) {
+        case 1:
+            changeBTName();
+            break;
+        case 2:
+            changeBTPIN();
+            break;
+        case 3:
+            changeBAUDRate();
+            break;
+        case 4:
+            showHC06Version();
+            break;
+    }
+}
+
+int mainMenuChoice() {
+    Serial.println(F(""));
+    Serial.println(F("What do you want to do?"));
+    Serial.println(F("[1] Set the Bluetooth device name"));
+    Serial.println(F("[2] Set the Bluetooth PIN"));
+    Serial.println(F("[3] Set the BAUD rate"));
+    Serial.println(F("[4] Show HC-06 version information"));
+    Serial.println(F(""));
+    Serial.println(F("Please enter your choice."));
+
+    String userInput = String();
+
+    input:
+    do {
+        userInput = Serial.readStringUntil('\r');
+    } while (userInput.equals(""));
+
+    int choiceMade = userInput.toInt();
+    if (choiceMade < 1 || choiceMade > 4) {
+        Serial.println(F("Invalid choice! Please chose a valid item."));
+        goto input;
+    }
+
+    return choiceMade;
+}
+
+
+void changeBTName() {
+    Serial.println(F(""));
+
+    input:
+    Serial.print(F("Please enter the new name (at most 20 characters): "));
+
+    String userInput = String();
+    do {
+        userInput = Serial.readStringUntil('\r');
+    } while (userInput.equals(""));
+
+    Serial.println(userInput);
+
+    if (userInput.length() < 1 || userInput.length() > 20) {
+        Serial.print(F("Invalid length! "));
+        goto input;
+    }
+
+    if (enterATCommandMode()) {
+        hc06.print("AT+NAME" + userInput);
+        String reply = hc06.readString();
+        if (reply.equals("")) {
+            Serial.println(F("HC-06 didn't reply in time!"));
+        } else {
+            if (reply.length() < 2 || !reply.substring(0, 2).equalsIgnoreCase(F("OK")))
+                Serial.println("Unexpected answer ('" + reply + "') to AT+NAME command!");
+            else
+                Serial.println(F("Name was set successfully."));
         }
-
-        hc06.end();
-        hc06.begin(baudRate);
-      }        
     }
-  }
 }
 
 
-void showHC06Version()
-{
-  String reply;
+void changeBTPIN() {
+    Serial.println(F(""));
 
-  Serial.print(F("HC-06 version number: "));
+    input:
+    Serial.print(F("Please enter a 4-digit PIN: "));
 
-  if (enterATCommandMode())
-  {
-    hc06.print(F("AT+VERSION"));
-    reply = hc06.readString();
-    if (reply.equals(""))
-    {
-      Serial.println(F("HC-06 didn't reply in time!"));
+    String userInput = String();
+    do {
+        userInput = Serial.readStringUntil('\r');
+    } while (userInput.equals(""));
+
+    Serial.println(userInput);
+
+    if (userInput.length() != 4) {
+        Serial.print(F("Your input must contain 4 digits! "));
+        goto input;
     }
-    else
-    {
-      if (reply.length() < 2 || !reply.substring(0,2).equalsIgnoreCase(F("OK")))
-        Serial.println("Unexpected answer ('" + reply + "') to AT+VERSION command");
-      else  
-        Serial.println(reply.substring(2));
+
+    int inputAsInt = userInput.toInt();
+    if (inputAsInt == 0) {
+        Serial.print(F("Your input must consist of numbers only! "));
+        goto input;
     }
-  }
+
+    if (enterATCommandMode()) {
+        hc06.print("AT+PIN" + userInput);
+        String reply = hc06.readString();
+        if (reply.equals("")) {
+            Serial.println(F("HC-06 didn't reply in time!"));
+        } else {
+            if (reply.length() < 2 || !reply.substring(0, 2).equalsIgnoreCase(F("OK")))
+                Serial.println("Unexpected answer ('" + reply + "') to AT+PIN command!");
+            else
+                Serial.println(F("PIN was set successfully."));
+        }
+    }
 }
 
 
-bool enterATCommandMode()
-{
-  char atReplyBuffer[] = { '\0', '\0', '\0' };
+void changeBAUDRate() {
+    Serial.println(F(""));
 
-  // Send AT command and receive answer
-  hc06.print(F("AT"));
-  int bytesRead = hc06.readBytesUntil('\0', atReplyBuffer, 2);
-  String reply = String(atReplyBuffer);
+    Serial.println(F("What BAUD rate should be set?"));
+    Serial.println(F("[1] 1200bps"));
+    Serial.println(F("[2] 2400bps"));
+    Serial.println(F("[3] 4800bps"));
+    Serial.println(F("[4] 9600bps"));
+    Serial.println(F("[5] 19200bps"));
+    Serial.println(F("[6] 38400bps"));
+    Serial.println(F("[7] 57600bps"));
+    Serial.println(F("[8] 115200bps"));
+    Serial.println(F(""));
+    Serial.println(F("Please enter your choice."));
 
-  // Timed out or answer wasn't OK? Error.
-  if (bytesRead != 2 || !reply.equalsIgnoreCase(F("OK")))
-  {
-    if (reply.equals(""))
-      Serial.println(F("HC-06 didn't reply in time!"));
-    else
-      Serial.println("Unexpected reply ('" + reply + "') to AT command");
+    String userInput = String();
 
-    return false;
-  }
+    input:
+    do {
+        userInput = Serial.readStringUntil('\r');
+    } while (userInput.equals(""));
 
-  return true;
+    int choiceMade = userInput.toInt();
+    if (choiceMade < 1 || choiceMade > 8) {
+        Serial.println(F("Invalid choice! Please chose a valid item."));
+        goto input;
+    }
+
+    if (enterATCommandMode()) {
+        hc06.print("AT+BAUD" + userInput);
+        String reply = hc06.readString();
+        if (reply.equals("")) {
+            Serial.println(F("HC-06 didn't reply in time!"));
+        } else {
+            if (reply.length() < 2 || !reply.substring(0, 2).equalsIgnoreCase(F("OK")))
+                Serial.println("Unexpected answer ('" + reply + "') to AT+BAUD command!");
+            else {
+                Serial.println(F("BAUD rate was set successfully. Trying to re-connect with new BAUD rate."));
+
+                long baudRate;
+                switch (choiceMade) {
+                    case 1:
+                        baudRate = 1200;
+                        break;
+                    case 2:
+                        baudRate = 2400;
+                        break;
+                    case 3:
+                        baudRate = 4800;
+                        break;
+                    case 5:
+                        baudRate = 19200;
+                        break;
+                    case 6:
+                        baudRate = 38400;
+                        break;
+                    case 7:
+                        baudRate = 57600;
+                        break;
+                    case 8:
+                        baudRate = 115200;
+                        break;
+                    default:
+                        baudRate = 9600;
+                        break;
+                }
+
+                hc06.end();
+                hc06.begin(baudRate);
+            }
+        }
+    }
+}
+
+
+void showHC06Version() {
+    String reply;
+
+    Serial.print(F("HC-06 version number: "));
+
+    if (enterATCommandMode()) {
+        hc06.print(F("AT+VERSION"));
+        reply = hc06.readString();
+        if (reply.equals("")) {
+            Serial.println(F("HC-06 didn't reply in time!"));
+        } else {
+            if (reply.length() < 2 || !reply.substring(0, 2).equalsIgnoreCase(F("OK")))
+                Serial.println("Unexpected answer ('" + reply + "') to AT+VERSION command");
+            else
+                Serial.println(reply.substring(2));
+        }
+    }
+}
+
+
+bool enterATCommandMode() {
+    char atReplyBuffer[] = {'\0', '\0', '\0'};
+
+    // Send AT command and receive answer
+    hc06.print(F("AT"));
+    int bytesRead = hc06.readBytesUntil('\0', atReplyBuffer, 2);
+    String reply = String(atReplyBuffer);
+
+    // Timed out or answer wasn't OK? Error.
+    if (bytesRead != 2 || !reply.equalsIgnoreCase(F("OK"))) {
+        if (reply.equals(""))
+            Serial.println(F("HC-06 didn't reply in time!"));
+        else
+            Serial.println("Unexpected reply ('" + reply + "') to AT command");
+
+        return false;
+    }
+
+    return true;
 }
 
