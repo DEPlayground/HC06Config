@@ -21,3 +21,5 @@ follow the instructions.
 according to your actual setup!
 2. Please make sure to select "carriage return" (CR, `\r`) line ending for the
 serial monitor! Otherwise your inputs will not be recognized!
+
+Lara Maia <dev@lara.click>
