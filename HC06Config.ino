@@ -223,7 +223,7 @@ void changeBTName()
     goto input;
   }
 
-  if (enterATCommandMode() == true)
+  if (enterATCommandMode())
   {
     hc06.print("AT+NAME" + userInput);
     String reply = hc06.readString();
@@ -271,7 +271,7 @@ void changeBTPIN()
     goto input;
   }
 
-  if (enterATCommandMode() == true)
+  if (enterATCommandMode())
   {
     hc06.print("AT+PIN" + userInput);
     String reply = hc06.readString();
@@ -322,7 +322,7 @@ void changeBAUDRate()
     goto input;
   }
 
-  if (enterATCommandMode() == true)
+  if (enterATCommandMode())
   {
     hc06.print("AT+BAUD" + userInput);
     String reply = hc06.readString();
@@ -381,7 +381,7 @@ void showHC06Version()
 
   Serial.print(F("HC-06 version number: "));
 
-  if (enterATCommandMode() == true)
+  if (enterATCommandMode())
   {
     hc06.print(F("AT+VERSION"));
     reply = hc06.readString();
