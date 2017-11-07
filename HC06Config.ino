@@ -140,34 +140,23 @@ void selectHC06BAUDRate()
 
 void loop()
 {
-  int action = mainMenuChoice();
-
-  if (action == 1)
+  switch(mainMenuChoice())
   {
-    changeBTName();
-  }
-
-  if (action == 2)
-  {
-    changeBTPIN();
-  }
-
-  if (action == 3)
-  {
-    changeBAUDRate();
-  }
-
-  if (action == 4)
-  {
-    showHC06Version();
+    case 1:
+      changeBTName();
+      break;
+    case 2:
+      changeBTPIN();
+      break;
+    case 3:
+      changeBAUDRate();
+      break;
+    case 4:
+      showHC06Version();
+      break;
   }
 }
 
-
-/*
- * Returns: 1 if the user wants to change the BT device name
- *          2 if the user wants to change the BT PIN
- */
 int mainMenuChoice()
 {
   Serial.println(F(""));
