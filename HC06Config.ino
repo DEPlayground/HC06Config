@@ -66,7 +66,7 @@ SoftwareSerial hc06(RXPIN, TXPIN);
 void setup() {
     Serial.begin(9600);
 
-    while (!Serial.available());
+    while (!Serial);
 
     selectHC06BAUDRate();
 }
